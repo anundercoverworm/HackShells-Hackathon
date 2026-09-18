@@ -1,0 +1,177 @@
+[
+  {
+    "product_id": 1,
+    "price": 500.0,
+    "date": "2026-09-12"
+  },
+  {
+    "product_id": 1,
+    "price": 500.0,
+    "date": "2026-09-13"
+  },
+  {
+    "product_id": 1,
+    "price": 500.0,
+    "date": "2026-09-14"
+  },
+  {
+    "product_id": 1,
+    "price": 500.0,
+    "date": "2026-09-15"
+  },
+  {
+    "product_id": 1,
+    "price": 500.0,
+    "date": "2026-09-16"
+  },
+  {
+    "product_id": 1,
+    "price": 500.0,
+    "date": "2026-09-17"
+  },
+  {
+    "product_id": 1,
+    "price": 500.0,
+    "date": "2026-09-18"
+  },
+  {
+    "product_id": 2,
+    "price": 95.0,
+    "date": "2026-09-12"
+  },
+  {
+    "product_id": 2,
+    "price": 95.0,
+    "date": "2026-09-13"
+  },
+  {
+    "product_id": 2,
+    "price": 95.0,
+    "date": "2026-09-14"
+  },
+  {
+    "product_id": 2,
+    "price": 95.0,
+    "date": "2026-09-15"
+  },
+  {
+    "product_id": 2,
+    "price": 95.0,
+    "date": "2026-09-16"
+  },
+  {
+    "product_id": 2,
+    "price": 95.0,
+    "date": "2026-09-17"
+  },
+  {
+    "product_id": 2,
+    "price": 95.0,
+    "date": "2026-09-18"
+  },
+  {
+    "product_id": 3,
+    "price": 30.0,
+    "date": "2026-09-12"
+  },
+  {
+    "product_id": 3,
+    "price": 30.0,
+    "date": "2026-09-13"
+  },
+  {
+    "product_id": 3,
+    "price": 30.0,
+    "date": "2026-09-14"
+  },
+  {
+    "product_id": 3,
+    "price": 30.0,
+    "date": "2026-09-15"
+  },
+  {
+    "product_id": 3,
+    "price": 30.0,
+    "date": "2026-09-16"
+  },
+  {
+    "product_id": 3,
+    "price": 30.0,
+    "date": "2026-09-17"
+  },
+  {
+    "product_id": 3,
+    "price": 30.0,
+    "date": "2026-09-18"
+  },
+  {
+    "product_id": 4,
+    "price": 10000.0,
+    "date": "2026-09-12"
+  },
+  {
+    "product_id": 4,
+    "price": 10000.0,
+    "date": "2026-09-13"
+  },
+  {
+    "product_id": 4,
+    "price": 10000.0,
+    "date": "2026-09-14"
+  },
+  {
+    "product_id": 4,
+    "price": 10000.0,
+    "date": "2026-09-15"
+  },
+  {
+    "product_id": 4,
+    "price": 10000.0,
+    "date": "2026-09-16"
+  },
+  {
+    "product_id": 4,
+    "price": 10000.0,
+    "date": "2026-09-17"
+  },
+  {
+    "product_id": 4,
+    "price": 10000.0,
+    "date": "2026-09-18"
+  },
+  {
+    "product_id": 5,
+    "price": 10000000.0,
+    "date": "2026-09-12"
+  },
+  {
+    "product_id": 5,
+    "price": 10000000.0,
+    "date": "2026-09-13"
+  },
+  {
+    "product_id": 5,
+    "price": 10000000.0,
+    "date": "2026-09-14"
+  },
+  {
+    "product_id": 5,
+    "price": 10000000.0,
+    "date": "2026-09-15"
+  },
+  {
+    "product_id": 5,
+    "price": 10000000.0,
+    "date": "2026-09-16"
+  },
+  {
+    "product_id": 5,
+    "price": 10000000.0,
+    "date": "2026-09-17"
+  },
+  {
+    "product_id": 5,
+    "price": 10000000.0,
+    "date": "2026-09-18"
+  }
+]

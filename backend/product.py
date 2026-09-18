@@ -1,4 +1,78 @@
+import json
+import os
+
 products = []
+DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "products.json")
+
+
+def ensure_storage_dir():
+    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+
+
+def save_products():
+    ensure_storage_dir()
+    with open(DATA_FILE, "w", encoding="utf-8") as file:
+        json.dump(products, file, ensure_ascii=False, indent=2)
+
+
+def load_products():
+    global products
+    ensure_storage_dir()
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r", encoding="utf-8") as file:
+            try:
+                loaded = json.load(file)
+                if isinstance(loaded, list):
+                    products = loaded
+                    return products
+            except json.JSONDecodeError:
+                pass
+
+    products = []
+    return products
+
+
+def seed_default_products():
+    load_products()
+    if products:
+        return products
+
+    default_products = [
+        {
+            "id": 1,
+            "name": "Nintendo Switch 2",
+            "series": "Nintendo",
+            "purchase_price": 450.00,
+            "current_price": 500.00,
+            "inventory_id": 1,
+            "brand": "Nintendo",
+            "category": "Console"
+        },
+        {
+            "id": 2,
+            "name": "Zelda Collector's Edition",
+            "series": "The Legend of Zelda",
+            "purchase_price": 80.00,
+            "current_price": 95.00,
+            "inventory_id": 1,
+            "brand": "Nintendo",
+            "category": "Collector's Edition"
+        },
+        {
+            "id": 3,
+            "name": "Pokémon Figure",
+            "series": "Pokémon",
+            "purchase_price": 35.00,
+            "current_price": 30.00,
+            "inventory_id": 1,
+            "brand": "Pokémon",
+            "category": "Figure"
+        }
+    ]
+
+    products.extend(default_products)
+    save_products()
+    return products
 
 
 def add_product(name, purchase_price, current_price, inventory_id, brand, category, series):
@@ -14,10 +88,13 @@ def add_product(name, purchase_price, current_price, inventory_id, brand, catego
     }
 
     products.append(product)
+    save_products()
     return product
 
 
 def get_products():
+    if not products:
+        seed_default_products()
     return products
 
 
