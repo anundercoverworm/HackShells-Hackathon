@@ -20,7 +20,17 @@ app.add_middleware(
 def health():
     return {"message": "Hello API"}
 
-data = data_generation.get_marketplace_data("1999 Holographic Charizard 1st Edition")
-print(f"Product: {data.item_name} (Est. Value: ${data.estimated_market_value})")
-for listing in data.listings:
-    print(f"- {listing.seller_name}: ${listing.price} [{listing.condition}]")
+# Generates seller data for prompted item across 4 days
+# Allows market value to be graphed over time to see how it changes
+item = data_generation.get_item_data("1999 Holographic Charizard 1st Edition")
+
+print(f"Product: {item[0].item_name} (Current Est. Value: ${item[3].estimated_market_value})")
+print("\n")
+print(f"Curent Sellers:")
+for listing in item[3].listings:
+    print(f"- ${listing.price} [{listing.condition}]")
+print(f"Est. Market Value Over 4 Days:")
+print(f"3 days ago - ${item[0].estimated_market_value}")
+print(f"2 days ago - ${item[1].estimated_market_value}")
+print(f"1 day ago - ${item[2].estimated_market_value}")
+print(f"Today - ${item[3].estimated_market_value}")
