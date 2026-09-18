@@ -8,16 +8,19 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
+# OpenAI is optional; the deterministic fallback keeps the app usable offline.
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key) if api_key else None
 
 
 class SellerListing(BaseModel):
+    # A single marketplace offer with a condition and asking price.
     condition: str = Field(description="e.g. Mint, Near Mint, Very Good, Fair")
     price: float = Field(description="Asking price in USD")
 
 
 class CollectibleProduct(BaseModel):
+    # Structured marketplace data returned to the API and frontend.
     item_name: str
     category: str
     brand: str
@@ -26,15 +29,18 @@ class CollectibleProduct(BaseModel):
 
 
 class MarketHistoryPoint(BaseModel):
+    # One dated market-value point used by the historical chart.
     date: str
     estimated_market_value: float
 
 
 def get_marketplace_data(query: str, price: float, variation: float = 0.0) -> CollectibleProduct:
+    # Generate seller listings using OpenAI when configured, otherwise use local data.
     base_value = float(price) if price != -1 else 100.0
     adjusted_value = round(base_value * (1 + variation), 2)
 
     if client is None:
+        # The fallback creates predictable listings with condition-based price spread.
         return CollectibleProduct(
             item_name=query,
             category="Collectible",
@@ -48,6 +54,7 @@ def get_marketplace_data(query: str, price: float, variation: float = 0.0) -> Co
             ],
         )
 
+    # Ask the model for structured, realistic-looking marketplace results.
     prompt = f"""
     Generate marketplace listings for the collectible item: "{query}".
     Provide between 4 to 6 different sellers with varying prices and conditions typical for collectors
@@ -68,6 +75,7 @@ def get_marketplace_data(query: str, price: float, variation: float = 0.0) -> Co
 
 
 def get_market_history(query: str, base_value: float = 100.0) -> list[MarketHistoryPoint]:
+    # Generate a short market trend without changing the user's stored product price.
     if base_value <= 0:
         base_value = 100.0
 
@@ -76,6 +84,7 @@ def get_market_history(query: str, base_value: float = 100.0) -> list[MarketHist
 
     history = []
     for offset, variation in enumerate(realistic_changes):
+        # Add a small wave so the synthetic series does not look artificially flat.
         day = start_date + timedelta(days=offset)
         seasonal_wave = 0.012 * math.sin((offset + 1) * 1.5)
         value = base_value * (1 + variation + seasonal_wave)
@@ -91,6 +100,7 @@ def get_market_history(query: str, base_value: float = 100.0) -> list[MarketHist
 
 
 def get_item_data(query: str, base_value: float | None = None) -> list[CollectibleProduct]:
+    # Produce several marketplace snapshots at different price variations.
     base_value = float(base_value) if base_value is not None else 100.0
     variations = [-0.09, -0.04, 0.05, 0.11]
 

@@ -6,6 +6,7 @@ import pandas as pd
 import requests
 import streamlit as st
 
+# Configure the browser page and use a wide layout for dashboard tables and cards.
 st.set_page_config(
     page_title="Collection Tracker",
     page_icon="📦",
@@ -16,12 +17,14 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8001")
 
 
 def get_json(url):
+    # Perform a GET request and convert the successful response to Python data.
     response = requests.get(url, timeout=10)
     response.raise_for_status()
     return response.json()
 
 
 def refresh_collection():
+    # Load products and series into Streamlit session state.
     try:
         products = get_json(f"{API_BASE_URL}/api/products")
         series = get_json(f"{API_BASE_URL}/api/series")
@@ -35,6 +38,7 @@ def refresh_collection():
 
 
 def refresh_inventories():
+    # Load inventories and calculate the displayed value for each one.
     try:
         inventories = get_json(f"{API_BASE_URL}/api/inventories")
         summary = []
@@ -53,6 +57,7 @@ def refresh_inventories():
 
 
 def fetch_marketplace(product_name):
+    # Request current marketplace listings for one product.
     try:
         url = f"{API_BASE_URL}/api/marketplace/{quote(product_name)}"
         return get_json(url)
@@ -61,6 +66,7 @@ def fetch_marketplace(product_name):
 
 
 def fetch_market_history(product_name):
+    # Request synthetic market history used by the market-value chart.
     try:
         url = f"{API_BASE_URL}/api/marketplace/{quote(product_name)}/history"
         return get_json(url)
@@ -69,6 +75,7 @@ def fetch_market_history(product_name):
 
 
 def fetch_price_history(product_id):
+    # Request the user's recorded price history for one product.
     try:
         return get_json(f"{API_BASE_URL}/api/products/{product_id}/price-history")
     except requests.RequestException:
@@ -76,18 +83,21 @@ def fetch_price_history(product_id):
 
 
 def api_post(path, payload):
+    # Send a JSON POST request to the backend API.
     response = requests.post(f"{API_BASE_URL}{path}", json=payload, timeout=10)
     response.raise_for_status()
     return response.json()
 
 
 def api_delete(path):
+    # Delete a resource through the backend API.
     response = requests.delete(f"{API_BASE_URL}{path}", timeout=10)
     response.raise_for_status()
     return response.json()
 
 
 def make_change_chart(frame):
+    # Prepare colors and fixed square dimensions for the change cards.
     chart_data = frame[["name", "Change"]].copy()
     chart_data["Change"] = pd.to_numeric(chart_data["Change"], errors="coerce").fillna(0.0)
     chart_data["fill_color"] = chart_data["Change"].apply(lambda value: "#22c55e" if value >= 0 else "#ef4444")
@@ -97,6 +107,7 @@ def make_change_chart(frame):
 
 
 def render_change_cards(frame):
+    # Render one equal-sized colored card for every product.
     chart_data = make_change_chart(frame)
     if chart_data.empty:
         st.info("No products to compare.")
@@ -139,6 +150,7 @@ def render_change_cards(frame):
 
 
 def get_market_change_for_product(product):
+    # Compare the latest market value with the user's purchase price.
     market_history = fetch_market_history(product["name"])
     if market_history:
         latest_market_value = float(market_history[-1].get("estimated_market_value", market_history[-1].get("market_value", product.get("current_price", 0))))
@@ -152,6 +164,7 @@ def get_market_change_for_product(product):
     return float(product.get("current_price", product.get("purchase_price", 0))) - float(product.get("purchase_price", 0))
 
 
+# Load each data group once per Streamlit session.
 if "products" not in st.session_state:
     refresh_collection()
 
@@ -172,6 +185,7 @@ total_products = len(products)
 price_changes = sum(1 for product in products if product.get("purchase_price") != product.get("current_price"))
 
 
+# The home page provides the main navigation shortcuts.
 if st.session_state.page == "Home":
     st.title("📦 Collection Tracker")
     st.write("👋 Welcome to Collection Tracker!")
@@ -207,6 +221,7 @@ if st.session_state.page == "Home":
             st.rerun()
 
 else:
+    # All secondary pages share the sidebar navigation.
     pages = ["Dashboard", "Products", "Add Product", "Collection Series"]
     st.sidebar.title("📦 Collection Tracker")
 
@@ -222,6 +237,7 @@ else:
         st.rerun()
 
     if st.session_state.page == "Dashboard":
+        # Dashboard combines collection totals, charts, marketplace data, and inventory values.
         st.title("📊 Dashboard")
         st.write("Manage your collection and track product prices.")
         st.divider()
@@ -238,6 +254,7 @@ else:
         st.subheader("My Collection")
 
         if products:
+            # Build a table with market-based change values for the collection.
             df = pd.DataFrame(products)
             df["Change"] = df.apply(get_market_change_for_product, axis=1)
             df["Change %"] = (df["Change"] / df["purchase_price"] * 100)
@@ -245,6 +262,7 @@ else:
             st.dataframe(df, use_container_width=True, hide_index=True)
 
             st.subheader("📈 Historical Price Trend")
+            # Show user price history and market history on the same timeline.
             history_product = st.selectbox(
                 "Select a product to view its price history",
                 [item["name"] for item in products],
@@ -277,9 +295,11 @@ else:
                 st.info("This product does not have historical price entries yet.")
 
             st.subheader("📊 Price Change by Product")
+            # Use the same market-change metric as the table above.
             render_change_cards(df)
 
             st.subheader("📦 Inventory Overview")
+            # Display the current value of every available inventory.
             inventory_summary = st.session_state.get("inventory_summary", [])
             if inventory_summary:
                 cols = st.columns(len(inventory_summary))
@@ -290,6 +310,7 @@ else:
                 st.info("No inventories available yet.")
 
             st.subheader("🛍️ Marketplace Snapshot")
+            # Show seller listings for a product selected by the user.
             market_product = st.selectbox("Select product", [item["name"] for item in products], key="market_product_select")
             market_data = fetch_marketplace(market_product)
             if market_data:
@@ -303,6 +324,7 @@ else:
             st.info("Your collection is empty. Add a product to get started.")
 
     elif st.session_state.page == "Products":
+        # Products page lists records and provides deletion controls and history charts.
         st.title("📦 Products")
         st.write("View and manage the products in your collection.")
 
@@ -314,6 +336,7 @@ else:
             st.info("Your collection is empty.")
         else:
             for index, product in enumerate(products):
+                # Each product block contains details, history, and delete confirmation.
                 st.subheader(product["name"])
                 col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
 
@@ -377,6 +400,7 @@ else:
                 st.divider()
 
     elif st.session_state.page == "Add Product":
+        # Add Product validates form input before sending a new record to the API.
         st.title("➕ Add Product")
         st.write("Add a new product to your collection.")
 
@@ -394,6 +418,7 @@ else:
             submitted = st.form_submit_button("Add Product", type="primary")
 
         if submitted:
+            # Validate required fields before creating the product and its series.
             if not name.strip():
                 st.error("Please enter a product name.")
             elif not series.strip():
@@ -426,6 +451,7 @@ else:
                 st.rerun()
 
     elif st.session_state.page == "Collection Series":
+        # Collection Series groups products and summarizes their combined value.
         st.title("🏷️ Collection Series")
         st.write("Manage your collection series and view the value of each series.")
         st.divider()
@@ -436,6 +462,7 @@ else:
             create_series = st.form_submit_button("Create Series", type="primary")
 
         if create_series:
+            # Avoid creating duplicate series names with different capitalization.
             clean_series_name = new_series_name.strip()
             if clean_series_name == "":
                 st.error("Please enter a series name.")
@@ -473,6 +500,7 @@ else:
                 st.metric("Change", f"${series_change:,.2f}", delta=f"{series_change_percent:.2f}%")
 
             if series_products:
+                # Display products, history, and change cards for the selected series.
                 st.subheader("Products in this Series")
                 series_df = pd.DataFrame(series_products)
                 series_df["Change"] = series_df.apply(get_market_change_for_product, axis=1)

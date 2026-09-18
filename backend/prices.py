@@ -4,21 +4,25 @@ from datetime import datetime, timedelta
 
 from backend import product
 
+# Price history is cached in memory and synchronized with a JSON file.
 price_history = []
 DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "price_history.json")
 
 
 def ensure_storage_dir():
+    # Make sure the data directory exists before accessing the history file.
     os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
 
 
 def save_history():
+    # Persist all recorded price-history entries.
     ensure_storage_dir()
     with open(DATA_FILE, "w", encoding="utf-8") as file:
         json.dump(price_history, file, ensure_ascii=False, indent=2)
 
 
 def load_history():
+    # Restore saved history, falling back to an empty history on invalid data.
     global price_history
     ensure_storage_dir()
     if os.path.exists(DATA_FILE):
@@ -35,12 +39,14 @@ def load_history():
 
 
 def clear_history(product_id):
+    # Remove every history entry belonging to one product.
     global price_history
     price_history = [entry for entry in price_history if entry["product_id"] != product_id]
     save_history()
 
 
 def is_history_valid(product_id):
+    # Reject missing, malformed, or implausible history before rebuilding it.
     history = get_price_history(product_id)
     if not history:
         return False
@@ -68,6 +74,7 @@ def is_history_valid(product_id):
 
 
 def build_realistic_history(product_id, current_price):
+    # Create a seven-day history tied to the user's recorded product price.
     product_data = product.get_product(product_id)
     if product_data is None:
         return []
@@ -89,6 +96,7 @@ def build_realistic_history(product_id, current_price):
 
 
 def add_history_entry(product_id, price):
+    # Append one timestamped price observation for an existing product.
     product_data = product.get_product(product_id)
     if product_data is None:
         return None
@@ -105,6 +113,7 @@ def add_history_entry(product_id, price):
 
 
 def add_price(product_id, price):
+    # Update the user's current price and rebuild its consistent history.
     product_data = product.get_product(product_id)
     if product_data is None:
         return None
@@ -118,6 +127,7 @@ def add_price(product_id, price):
 
 
 def get_price_history(product_id):
+    # Load history lazily and return only entries for the requested product.
     if not price_history:
         load_history()
     history = []
@@ -128,6 +138,7 @@ def get_price_history(product_id):
 
 
 def get_current_price(product_id):
+    # Return the current user-recorded price for one product.
     product_data = product.get_product(product_id)
 
     if product_data is None:
@@ -137,6 +148,7 @@ def get_current_price(product_id):
 
 
 def get_price_graph(product_id):
+    # Convert stored history into the simple shape expected by graph consumers.
     history = get_price_history(product_id)
 
     graph_data = []

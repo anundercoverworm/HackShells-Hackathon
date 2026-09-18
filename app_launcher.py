@@ -11,6 +11,7 @@ FRONTEND_PORT = 8503
 
 
 def project_root():
+    # Resolve the project directory for both source runs and the packaged executable.
     if getattr(sys, "frozen", False):
         executable_dir = Path(sys.executable).resolve().parent
         return executable_dir.parent if executable_dir.name.lower() == "dist" else executable_dir
@@ -18,6 +19,7 @@ def project_root():
 
 
 def python_command(root):
+    # Prefer the local virtual environment when the launcher is packaged.
     if not getattr(sys, "frozen", False):
         return [sys.executable]
 
@@ -33,6 +35,7 @@ def python_command(root):
 
 
 def ensure_environment(root):
+    # Install Python dependencies the first time the packaged launcher is opened.
     if not getattr(sys, "frozen", False):
         return
 
@@ -74,6 +77,7 @@ def ensure_environment(root):
 
 
 def wait_for_url(url, process, timeout=30):
+    # Do not open the browser until the corresponding service is responding.
     deadline = time.time() + timeout
     while time.time() < deadline:
         if process.poll() is not None:
@@ -88,6 +92,7 @@ def wait_for_url(url, process, timeout=30):
 
 
 def stop_process(process):
+    # Shut down child services cleanly when the launcher exits.
     if process and process.poll() is None:
         process.terminate()
         try:
@@ -97,6 +102,7 @@ def stop_process(process):
 
 
 def main():
+    # Start the API, start Streamlit, open the dashboard, and supervise both processes.
     root = project_root()
     os.chdir(root)
     ensure_environment(root)

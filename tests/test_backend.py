@@ -6,10 +6,12 @@ from backend.main import app
 
 
 class BackendIntegrationTests(unittest.TestCase):
+    # Reuse FastAPI's test client for endpoint-level integration checks.
     def setUp(self):
         self.client = TestClient(app)
 
     def test_products_endpoint_returns_data(self):
+        # The collection endpoint should return a JSON list of products.
         response = self.client.get("/api/products")
         self.assertEqual(response.status_code, 200)
         data = response.json()
@@ -17,6 +19,7 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertGreaterEqual(len(data), 1)
 
     def test_inventories_endpoint_returns_data(self):
+        # The inventory endpoint should expose at least the main inventory.
         response = self.client.get("/api/inventories")
         self.assertEqual(response.status_code, 200)
         data = response.json()
@@ -24,6 +27,7 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertGreaterEqual(len(data), 1)
 
     def test_default_products_have_price_history(self):
+        # Every persisted product should have graphable history.
         products = self.client.get("/api/products").json()
         self.assertGreater(len(products), 0)
 
@@ -33,6 +37,7 @@ class BackendIntegrationTests(unittest.TestCase):
             self.assertGreaterEqual(len(history), 1)
 
     def test_marketplace_history_does_not_overwrite_current_price(self):
+        # Market estimates must remain separate from the user's recorded price.
         products = self.client.get("/api/products").json()
         product_id = products[0]["id"]
         original = products[0]["current_price"]
@@ -44,6 +49,7 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(updated["current_price"], original)
 
     def test_marketplace_history_has_multiple_distinct_values(self):
+        # Marketplace snapshots should show variation between listings.
         from backend import data_generation
 
         item_data = data_generation.get_item_data("Test Product")
@@ -52,6 +58,7 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertGreater(len(set(values)), 1)
 
     def test_market_history_values_are_realistic(self):
+        # Synthetic market history should vary within a reasonable range.
         from backend import data_generation
 
         history = data_generation.get_market_history("Test Product", base_value=500.0)
@@ -62,6 +69,7 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertNotAlmostEqual(values[-1], 500.0, places=2)
 
     def test_product_history_stays_tied_to_user_price(self):
+        # User price history is intentionally flat until the user changes the price.
         from backend import prices
 
         product_id = 1
@@ -74,6 +82,7 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(values[0], current_price)
 
     def test_invalid_price_history_is_rebuilt(self):
+        # Implausible stored history should be replaced automatically.
         from backend import prices
 
         product_id = 1
@@ -89,6 +98,7 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertLess(max(entry["price"] for entry in rebuilt) - min(entry["price"] for entry in rebuilt), 1000)
 
     def test_price_history_endpoint_tracks_updates(self):
+        # Updating a product price should produce new history entries.
         products = self.client.get("/api/products").json()
         product_id = products[0]["id"]
 

@@ -6,10 +6,13 @@ from pydantic import BaseModel
 
 from backend import data_generation, inventories, prices, product
 
+# Load optional environment settings such as the OpenAI API key.
 load_dotenv(dotenv_path="../.env")
 
+# FastAPI application exposed to the Streamlit frontend.
 app = FastAPI(title="Collection Tracker API")
 
+# Allow local frontend clients to call the API during development.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,6 +23,7 @@ app.add_middleware(
 
 
 class ProductCreate(BaseModel):
+    # Request body used when adding a product to the collection.
     name: str
     series: str = "General"
     purchase_price: float = 0.0
@@ -30,18 +34,22 @@ class ProductCreate(BaseModel):
 
 
 class SeriesCreate(BaseModel):
+    # Request body used when creating a collection series.
     name: str
 
 
 class PriceUpdate(BaseModel):
+    # Request body used when updating a product's user-recorded price.
     price: float
 
 
+# Load persisted products and create the initial inventory at startup.
 product.seed_default_products()
 inventories.seed_default_inventory()
 
 
 def ensure_price_history(product_id: int):
+    # Reuse valid history and rebuild it when it is missing or inconsistent.
     item = product.get_product(product_id)
     if item is None:
         return []
@@ -58,22 +66,26 @@ def ensure_price_history(product_id: int):
     return prices.get_price_history(product_id)
 
 
+# Ensure every product loaded at startup has usable price-history data.
 for item in product.get_products():
     ensure_price_history(item["id"])
 
 
 @app.get("/api/health")
 def health():
+    # Lightweight endpoint used by the launcher to detect backend readiness.
     return {"message": "Hello API"}
 
 
 @app.get("/api/products")
 def get_products():
+    # Return the complete persisted collection.
     return product.get_products()
 
 
 @app.get("/api/products/{product_id}")
 def get_product_by_id(product_id: int):
+    # Return one product or a standard HTTP 404 response.
     item = product.get_product(product_id)
     if item is None:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -82,6 +94,7 @@ def get_product_by_id(product_id: int):
 
 @app.post("/api/products")
 def create_product(item: ProductCreate):
+    # Validate, persist, and initialize history for a new product.
     name = item.name.strip()
     series = item.series.strip() or "General"
 
@@ -105,6 +118,7 @@ def create_product(item: ProductCreate):
 
 @app.delete("/api/products/{product_id}")
 def delete_product(product_id: int):
+    # Delete the product and its associated price history together.
     products = product.get_products()
     for index, item in enumerate(products):
         if item["id"] == product_id:
@@ -118,6 +132,7 @@ def delete_product(product_id: int):
 
 @app.post("/api/products/{product_id}/price")
 def update_product_price(product_id: int, payload: PriceUpdate):
+    # Update the user price while keeping its history consistent.
     updated = prices.add_price(product_id, payload.price)
     if updated is None:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -126,6 +141,7 @@ def update_product_price(product_id: int, payload: PriceUpdate):
 
 @app.get("/api/products/{product_id}/price-history")
 def get_product_price_history(product_id: int):
+    # Return validated history for one product.
     item = product.get_product(product_id)
     if item is None:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -134,12 +150,14 @@ def get_product_price_history(product_id: int):
 
 @app.get("/api/series")
 def get_series():
+    # Return unique series names currently used by products.
     series = sorted({item["series"] for item in product.get_products()})
     return series
 
 
 @app.post("/api/series")
 def create_series(item: SeriesCreate):
+    # Validate a series name and report whether it already exists.
     series_name = item.name.strip()
     if not series_name:
         raise HTTPException(status_code=400, detail="Series name is required")
@@ -153,11 +171,13 @@ def create_series(item: SeriesCreate):
 
 @app.get("/api/inventories")
 def get_inventories():
+    # Return the available inventories.
     return inventories.get_inventories()
 
 
 @app.get("/api/inventories/{inventory_id}")
 def get_inventory_by_id(inventory_id: int):
+    # Return one inventory or a standard HTTP 404 response.
     item = inventories.get_inventory(inventory_id)
     if item is None:
         raise HTTPException(status_code=404, detail="Inventory not found")
@@ -166,6 +186,7 @@ def get_inventory_by_id(inventory_id: int):
 
 @app.get("/api/inventories/{inventory_id}/value")
 def get_inventory_value_inventory(inventory_id: int):
+    # Return the total current value of products in an inventory.
     inventory = inventories.get_inventory(inventory_id)
     if inventory is None:
         raise HTTPException(status_code=404, detail="Inventory not found")
@@ -174,6 +195,7 @@ def get_inventory_value_inventory(inventory_id: int):
 
 @app.get("/api/marketplace/{item_name}")
 def get_marketplace(item_name: str):
+    # Return marketplace listings based on the product's current price.
     normalized = item_name.strip().lower()
     product_match = next(
         (item for item in product.get_products() if item["name"].strip().lower() == normalized),
@@ -186,6 +208,7 @@ def get_marketplace(item_name: str):
 
 @app.get("/api/marketplace/{item_name}/history")
 def get_marketplace_history(item_name: str):
+    # Return synthetic market history for the selected product.
     normalized = item_name.strip().lower()
     product_match = next(
         (item for item in product.get_products() if item["name"].strip().lower() == normalized),
@@ -198,4 +221,5 @@ def get_marketplace_history(item_name: str):
 
 @app.get("/api/hello")
 def hello():
+    # Simple connectivity endpoint for manual checks.
     return {"message": "Backend connected"}
