@@ -93,8 +93,6 @@ def add_product(name, purchase_price, current_price, inventory_id, brand, catego
 
 
 def get_products():
-    if not products:
-        seed_default_products()
     return products
 
 
