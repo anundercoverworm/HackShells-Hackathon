@@ -33,44 +33,12 @@ def load_products():
 
 
 def seed_default_products():
-    load_products()
-    if products:
+    ensure_storage_dir()
+    if os.path.exists(DATA_FILE):
+        load_products()
         return products
 
-    default_products = [
-        {
-            "id": 1,
-            "name": "Nintendo Switch 2",
-            "series": "Nintendo",
-            "purchase_price": 450.00,
-            "current_price": 500.00,
-            "inventory_id": 1,
-            "brand": "Nintendo",
-            "category": "Console"
-        },
-        {
-            "id": 2,
-            "name": "Zelda Collector's Edition",
-            "series": "The Legend of Zelda",
-            "purchase_price": 80.00,
-            "current_price": 95.00,
-            "inventory_id": 1,
-            "brand": "Nintendo",
-            "category": "Collector's Edition"
-        },
-        {
-            "id": 3,
-            "name": "Pokémon Figure",
-            "series": "Pokémon",
-            "purchase_price": 35.00,
-            "current_price": 30.00,
-            "inventory_id": 1,
-            "brand": "Pokémon",
-            "category": "Figure"
-        }
-    ]
-
-    products.extend(default_products)
+    products.clear()
     save_products()
     return products
 

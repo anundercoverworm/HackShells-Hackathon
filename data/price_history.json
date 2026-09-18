@@ -1,37 +1,37 @@
 [
   {
-    "product_id": 1,
-    "price": 150.0,
+    "product_id": 2,
+    "price": 95.0,
     "date": "2026-09-12"
   },
   {
-    "product_id": 1,
-    "price": 150.0,
+    "product_id": 2,
+    "price": 95.0,
     "date": "2026-09-13"
   },
   {
-    "product_id": 1,
-    "price": 150.0,
+    "product_id": 2,
+    "price": 95.0,
     "date": "2026-09-14"
   },
   {
-    "product_id": 1,
-    "price": 150.0,
+    "product_id": 2,
+    "price": 95.0,
     "date": "2026-09-15"
   },
   {
-    "product_id": 1,
-    "price": 150.0,
+    "product_id": 2,
+    "price": 95.0,
     "date": "2026-09-16"
   },
   {
-    "product_id": 1,
-    "price": 150.0,
+    "product_id": 2,
+    "price": 95.0,
     "date": "2026-09-17"
   },
   {
-    "product_id": 1,
-    "price": 150.0,
+    "product_id": 2,
+    "price": 95.0,
     "date": "2026-09-18"
   }
 ]
